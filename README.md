@@ -1,6 +1,6 @@
 # Maven_hands_on.md
 
-Certainly! Here's a clear, step-by-step practical guide for building a Java application using the Maven build tool, designed for beginners:
+Step-by-step practical guide for building a Java application using the Maven build tool, designed for beginners:
 
 ---
 
