@@ -1,0 +1,226 @@
+Here's another practical, hands-on Maven example, focusing on building a Java application with Maven and integrating it with an external library—**Google Gson**—to parse JSON data.
+
+---
+
+## Practical Hands-On Example: Using Maven to Integrate External Libraries (Google Gson)
+
+### **Objective**
+Students will learn to:
+
+- Add external dependencies via Maven.
+- Parse JSON data in Java using Google Gson.
+- Write Java code, compile, test, and run using Maven.
+
+---
+
+### **Prerequisites**
+Ensure you have:
+
+- Java JDK 11 or newer.
+- Apache Maven installed.
+- IDE (Eclipse, IntelliJ IDEA, or VS Code).
+
+Verify installations:
+```bash
+java -version
+mvn -version
+```
+
+---
+
+## Step-by-Step Instructions
+
+---
+
+### Step 1: Create a Basic Maven Project
+Run the following command to create a project:
+
+```bash
+mvn archetype:generate \
+    -DgroupId=com.example \
+    -DartifactId=JsonParserApp \
+    -DarchetypeArtifactId=maven-archetype-quickstart \
+    -DinteractiveMode=false
+```
+
+Navigate into the project directory:
+```bash
+cd JsonParserApp
+```
+
+---
+
+### Step 2: Add Gson Dependency to `pom.xml`
+Update your `pom.xml` by adding Google Gson dependency inside `<dependencies>`:
+
+```xml
+<dependencies>
+    <!-- Gson for JSON parsing -->
+    <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.10.1</version>
+    </dependency>
+
+    <!-- JUnit for unit testing -->
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.13.2</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+---
+
+### Step 3: Create a Java Class to Represent JSON Data
+Create a new class at:
+`src/main/java/com/example/User.java`
+
+```java
+package com.example;
+
+public class User {
+    private String name;
+    private int age;
+    private String email;
+
+    // Getters and Setters
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public int getAge() { return age; }
+    public void setAge(int age) { this.age = age; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    @Override
+    public String toString() {
+        return "User{name='" + name + "', age=" + age + ", email='" + email + "'}";
+    }
+}
+```
+
+---
+
+### Step 4: Implement JSON Parsing Logic in Main Application
+Modify the main class at:
+`src/main/java/com/example/App.java`
+
+```java
+package com.example;
+
+import com.google.gson.Gson;
+
+public class App {
+    public static void main(String[] args) {
+        String json = "{\"name\":\"John Doe\", \"age\":30, \"email\":\"john@example.com\"}";
+
+        Gson gson = new Gson();
+        User user = gson.fromJson(json, User.class);
+
+        System.out.println("Parsed user details:");
+        System.out.println(user);
+    }
+}
+```
+
+---
+
+### Step 5: Build and Run the Application
+Build the project using Maven:
+
+```bash
+mvn clean package
+```
+
+Run the application directly with Maven:
+
+```bash
+mvn exec:java -Dexec.mainClass="com.example.App"
+```
+
+To enable this easy execution, add this plugin to your `pom.xml` under `<plugins>` in `<build>`:
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.2.0</version>
+            <configuration>
+                <mainClass>com.example.App</mainClass>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+**Expected output:**
+```
+Parsed user details:
+User{name='John Doe', age=30, email='john@example.com'}
+```
+
+---
+
+### Step 6: Write a Unit Test for JSON Parsing
+Create a test class at:
+`src/test/java/com/example/AppTest.java`
+
+```java
+package com.example;
+
+import org.junit.Test;
+import static org.junit.Assert.*;
+import com.google.gson.Gson;
+
+public class AppTest {
+    
+    @Test
+    public void testJsonParsing() {
+        String json = "{\"name\":\"Jane Doe\", \"age\":25, \"email\":\"jane@example.com\"}";
+        Gson gson = new Gson();
+        User user = gson.fromJson(json, User.class);
+        
+        assertEquals("Jane Doe", user.getName());
+        assertEquals(25, user.getAge());
+        assertEquals("jane@example.com", user.getEmail());
+    }
+}
+```
+
+Run your tests with:
+
+```bash
+mvn test
+```
+
+You should see successful output:
+
+```
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+```
+
+---
+
+## Maven Commands Summary
+| Command                   | Description                                  |
+|---------------------------|----------------------------------------------|
+| `mvn clean package`       | Compile, test, and package the application   |
+| `mvn exec:java`           | Execute Java application via Maven           |
+| `mvn test`                | Execute unit tests                           |
+| `mvn clean`               | Cleanup compiled files                       |
+
+---
+
+## **Learning Outcomes**
+By completing this practical hands-on example, students learn:
+
+- How to add external dependencies easily via Maven.
+- Basic JSON parsing using Google Gson library.
+- Effective use of Maven lifecycle: compile, test, package, and execute.
+
