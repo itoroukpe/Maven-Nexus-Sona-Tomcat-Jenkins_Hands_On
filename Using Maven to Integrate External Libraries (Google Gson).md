@@ -1,4 +1,4 @@
-Here's another practical, hands-on Maven example, focusing on building a Java application with Maven and integrating it with an external library—**Google Gson**—to parse JSON data.
+Hands-on Maven example, focusing on building a Java application with Maven and integrating it with an external library—**Google Gson**—to parse JSON data.
 
 ---
 
