@@ -482,4 +482,74 @@ chmod -R 755 /home/ec2-user/maven-web-application
 | Permissions prevent deletion        | Use `sudo rm -rf`, `chown`, and `chmod`         |
 | Rebuild fails due to locked `target`| Delete `/target` folder manually                |
 
+---
+The reason your artifact is only being uploaded to the **snapshot repository** and **not the release repository** is because of this key detail in your `pom.xml`:
+
+```xml
+<version>0.0.1-SNAPSHOT</version>
+```
+
+### 🚨 Maven automatically uploads to:
+- `snapshotRepository` → when the version **contains `-SNAPSHOT`**
+- `repository` (release repo) → when the version is a **release version**, e.g., `0.0.1`, `1.0.0`, etc.
+
+---
+
+## ✅ **Solution:**
+
+If you want to deploy to the **release repository**, you must change your project version in `pom.xml` from:
+
+```xml
+<version>0.0.1-SNAPSHOT</version>
+```
+
+to:
+
+```xml
+<version>0.0.1</version>
+```
+
+---
+
+### 📌 Quick breakdown:
+
+| Version            | Where it deploys                   |
+|--------------------|------------------------------------|
+| `1.0.0-SNAPSHOT`   | `snapshotRepository`               |
+| `1.0.0`            | `repository` (release repository)  |
+
+---
+
+### ✅ **After updating the version:**
+
+1. Change `pom.xml`:
+   ```xml
+   <version>0.0.1</version>
+   ```
+
+2. Clean the project:
+   ```bash
+   mvn clean
+   ```
+
+3. Deploy again:
+   ```bash
+   mvn deploy -s ~/.m2/settings.xml
+   ```
+
+Now Maven will publish your artifact to:
+
+```
+http://44.245.179.35:8081/repository/Boeing-releases/
+```
+
+---
+
+### 🔐 Bonus Tips:
+
+- **Snapshot versions** are meant for ongoing development and can be overwritten.
+- **Release versions** are considered final and immutable — Nexus will often **block redeploying the same version** to the release repo unless configured otherwise.
+
+---
+
 
