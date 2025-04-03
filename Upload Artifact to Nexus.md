@@ -333,3 +333,153 @@ sh '''
 
 ---
 
+### Error you are seeing: 
+```
+[ERROR] The specified user settings file does not exist: /home/ec2-user/.m2/settings.xml
+```
+
+---
+
+## ✅ What this means:
+Maven is trying to use your `settings.xml` at the **exact path**:
+```
+/home/ec2-user/.m2/settings.xml
+```
+…but **it doesn't exist** there.
+
+---
+
+## ✅ How to fix it (step-by-step):
+
+### 🔹 **Step 1: Create the `.m2` folder if needed**
+```bash
+mkdir -p /home/ec2-user/.m2
+```
+
+---
+
+### 🔹 **Step 2: Create or paste in your `settings.xml`**
+Run this to open the file for editing:
+```bash
+nano /home/ec2-user/.m2/settings.xml
+```
+
+Then paste in the following **corrected content**:
+
+```xml
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <servers>
+        <server>
+            <id>nexus-releases</id>
+            <username>admin</username>
+            <password>YOUR_TOKEN_HERE</password>
+        </server>
+        <server>
+            <id>nexus-snapshots</id>
+            <username>admin</username>
+            <password>YOUR_TOKEN_HERE</password>
+        </server>
+    </servers>
+</settings>
+```
+
+> Replace `YOUR_TOKEN_HERE` with your actual Nexus token.
+
+Save and exit with: `Ctrl + O`, `Enter`, then `Ctrl + X`.
+
+---
+
+### 🔹 **Step 3: Re-run the deploy command**
+```bash
+mvn clean deploy -s /home/ec2-user/.m2/settings.xml
+```
+
+✅ If everything’s correct, this should now work and deploy your artifact successfully.
+
+---
+
+### The error you're seeing:
+
+```
+Failed to delete /home/ec2-user/maven-web-application/target/maven-web-application.war
+```
+
+means that Maven tried to **clean the project**, but it couldn't delete the WAR file — most likely because:
+
+### 🔒 **Something is still using the file** — either:
+- A server (like Jetty or Tomcat) is running and has the WAR open.
+- The file permissions are locked down.
+- A previous `mvn jetty:run` process wasn’t stopped correctly.
+
+---
+
+## ✅ **How to fix it (step-by-step)**
+
+---
+
+### 🔹 **Step 1: Manually delete the target folder**
+
+```bash
+rm -rf /home/ec2-user/maven-web-application/target
+```
+
+If you get a permission error, use:
+
+```bash
+sudo rm -rf /home/ec2-user/maven-web-application/target
+```
+
+---
+
+### 🔹 **Step 2: Ensure no background process is using the file**
+
+Check if something is still running and holding the WAR file:
+
+```bash
+lsof | grep maven-web-application.war
+```
+
+If you see a process, note the PID and stop it:
+
+```bash
+kill -9 <PID>
+```
+
+---
+
+### 🔹 **Step 3: Run your build again**
+
+```bash
+mvn clean deploy -s /home/ec2-user/.m2/settings.xml
+```
+
+---
+
+### 🔹 **Bonus: Check file permissions (if still stuck)**
+
+Ensure you own the files:
+
+```bash
+sudo chown -R ec2-user:ec2-user /home/ec2-user/maven-web-application
+```
+
+And allow full access:
+
+```bash
+chmod -R 755 /home/ec2-user/maven-web-application
+```
+
+---
+
+## ✅ Summary:
+
+| Problem                              | Solution                                        |
+|-------------------------------------|-------------------------------------------------|
+| WAR file locked by a server         | `lsof`, `kill`, or stop server                  |
+| Permissions prevent deletion        | Use `sudo rm -rf`, `chown`, and `chmod`         |
+| Rebuild fails due to locked `target`| Delete `/target` folder manually                |
+
+
