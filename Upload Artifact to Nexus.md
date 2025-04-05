@@ -50,7 +50,12 @@ Add the following section to your `pom.xml`:
 
 ### **Step 2: Add Server Credentials in `settings.xml`**
 Edit your `~/.m2/settings.xml` file:
-
+```
+$MAVEN_HOME/conf/settings.xml
+/opt/usr/share/maven/conf/settings.xml
+mvn -X | grep "Maven home"
+```
+---
 ```xml
 <servers>
     <server>
