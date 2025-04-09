@@ -1,0 +1,217 @@
+Here's a comprehensive step-by-step guide on installing Apache Tomcat on an Ubuntu server, configuring it, and deploying a WAR file built with Maven using a keypair named "sonar":
+
+---
+
+## Step 1: Update and Install Java
+
+First, ensure the system is updated and Java (JDK) is installed:
+
+```bash
+sudo apt update
+sudo apt install default-jdk -y
+```
+
+Verify Java installation:
+```bash
+java -version
+```
+
+---
+
+## Step 2: Create a Tomcat User
+
+Create a dedicated user for running Tomcat for security purposes:
+
+```bash
+sudo useradd -m -U -d /opt/tomcat -s /bin/false tomcat
+```
+
+---
+
+## Step 3: Download and Install Tomcat
+
+Visit the [Apache Tomcat official download page](https://tomcat.apache.org/download-10.cgi) to find the latest stable version link. Example with Tomcat 10.1.x:
+
+```bash
+wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.20/bin/apache-tomcat-10.1.20.tar.gz
+sudo tar -xzvf apache-tomcat-10.1.20.tar.gz -C /opt/tomcat --strip-components=1
+```
+
+Set appropriate permissions:
+
+```bash
+sudo chown -R tomcat:tomcat /opt/tomcat/
+sudo chmod -R u+x /opt/tomcat/bin
+```
+
+---
+
+## Step 4: Configure Systemd for Tomcat
+
+Create a Systemd service file:
+
+```bash
+sudo nano /etc/systemd/system/tomcat.service
+```
+
+Paste the following configuration:
+
+```ini
+[Unit]
+Description=Apache Tomcat Web Application Container
+After=network.target
+
+[Service]
+Type=forking
+
+User=tomcat
+Group=tomcat
+
+Environment=JAVA_HOME=/usr/lib/jvm/default-java
+Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid
+Environment=CATALINA_HOME=/opt/tomcat
+Environment=CATALINA_BASE=/opt/tomcat
+
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Save and close (`CTRL+O`, then `CTRL+X`).
+
+Reload systemd and start Tomcat:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl start tomcat
+sudo systemctl enable tomcat
+```
+
+Check the status:
+
+```bash
+sudo systemctl status tomcat
+```
+
+---
+
+## Step 5: Configure Firewall (optional, recommended)
+
+If UFW firewall is active, open port 8080 (default Tomcat port):
+
+```bash
+sudo ufw allow 8080/tcp
+```
+
+---
+
+## Step 6: Access Tomcat Web Interface
+
+In your browser, visit:
+
+```
+http://your_server_ip:8080
+```
+
+You should see the default Tomcat welcome page.
+
+---
+
+## Step 7: Configure Tomcat Web Management Interface (Optional, Recommended)
+
+Edit `tomcat-users.xml`:
+
+```bash
+sudo nano /opt/tomcat/conf/tomcat-users.xml
+```
+
+Add these lines within `<tomcat-users>` tag:
+
+```xml
+<role rolename="manager-gui"/>
+<user username="admin" password="your_secure_password" roles="manager-gui"/>
+```
+
+Restart Tomcat to apply:
+
+```bash
+sudo systemctl restart tomcat
+```
+
+---
+
+## Step 8: Build WAR File Using Maven
+
+Assuming Maven is installed and your application code is ready:
+
+Navigate to your Maven project folder:
+
+```bash
+cd /path/to/your/project
+mvn clean package
+```
+
+After the build completes, the WAR file is typically located under:
+
+```
+target/your-app.war
+```
+
+---
+
+## Step 9: Copy WAR File to Tomcat Using Keypair (SSH)
+
+If your Tomcat server has SSH key authentication enabled with a keypair named "sonar", you can securely copy your WAR file using SCP:
+
+First, ensure you have your private key (`sonar.pem`) and set permissions:
+
+```bash
+chmod 400 sonar.pem
+```
+
+Copy WAR file using SCP:
+
+```bash
+scp -i /path/to/sonar.pem target/your-app.war ubuntu@your_server_ip:/home/ubuntu
+```
+
+---
+
+## Step 10: Deploy WAR file on Tomcat
+
+SSH into your Ubuntu server:
+
+```bash
+ssh -i /path/to/sonar.pem ubuntu@your_server_ip
+```
+
+Then move your WAR file to the Tomcat webapps directory:
+
+```bash
+sudo mv ~/your-app.war /opt/tomcat/webapps/
+sudo chown tomcat:tomcat /opt/tomcat/webapps/your-app.war
+```
+
+Tomcat automatically deploys WAR files placed in this directory. Restart Tomcat for certainty:
+
+```bash
+sudo systemctl restart tomcat
+```
+
+---
+
+## Step 11: Verify Application Deployment
+
+In your browser, check your deployed application:
+
+```
+http://your_server_ip:8080/your-app/
+```
+
+If successful, your Maven-built application will be available and running.
+
+---
+
+**You're done!** Tomcat is installed, configured, and your WAR file has been successfully deployed.
